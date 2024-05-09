@@ -98,7 +98,7 @@ public class BookingRestControllerIntegrationTest {
     }
 
     @Test
-    public void createBookingSuccess() throws Exception {
+    public void testCreateBookingSuccess() throws Exception {
         Booking booking = new Booking();
         booking.setId(1L);
 

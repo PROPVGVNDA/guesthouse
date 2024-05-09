@@ -20,7 +20,7 @@ public class PaymentService {
     public void createPayment(Payment payment, Long bookingID) {
         Booking booking = bookingService.getBookingByID(bookingID);
         if (booking == null) {
-            throw new IllegalStateException("Booking with supplied ID not found");
+            throw new IllegalArgumentException("Booking with supplied ID not found");
         }
         payment.setBooking(booking);
         booking.setStatus(Booking.BookingStatus.PAID);
