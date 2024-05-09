@@ -14,6 +14,7 @@
         <strong>End Date:</strong> ${booking.endDate?string("yyyy-MM-dd")}<br>
         <strong>Status:</strong> ${booking.status}<br>
         <strong>Price:</strong> ${booking.price}<br>
+        <strong>Creation Date:</strong> ${booking.creationDate?string("yyyy-MM-dd")}<br>
     </div>
     <div>
         <a href="/bookings">Return to bookings list</a>

@@ -16,6 +16,8 @@ public class Booking {
     private Date startDate;
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date endDate;
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    private Date creationDate;
     private BookingStatus status;
     private double price;
 

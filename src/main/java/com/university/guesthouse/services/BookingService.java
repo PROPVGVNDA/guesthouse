@@ -1,12 +1,18 @@
 package com.university.guesthouse.services;
 
 import com.university.guesthouse.models.*;
+import lombok.extern.flogger.Flogger;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
@@ -36,6 +42,7 @@ public class BookingService {
         booking.setRoom(room);
         booking.setStatus(Booking.BookingStatus.CREATED);
         booking.setId(counter.incrementAndGet());
+        booking.setCreationDate(new Date());
         bookings.add(booking);
     }
 
@@ -61,5 +68,44 @@ public class BookingService {
             if (booking.getId().equals(id)) return booking;
         }
         return null;
+    }
+
+    public List<Booking> findUnpaidBookingsCreatedBefore(LocalDateTime date) {
+        return bookings.stream()
+                .filter(booking -> booking.getStatus() == Booking.BookingStatus.CREATED)
+                .filter(booking -> {
+                    LocalDateTime creationLocalDateTime = booking.getCreationDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                    return creationLocalDateTime.isBefore(date);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Scheduled(cron = "0 * * * * *")
+    public void cancelUnpaidBookings() {
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusMinutes(1);
+        List<Booking> unpaidBookings = this.findUnpaidBookingsCreatedBefore(threeDaysAgo);
+        unpaidBookings.forEach(booking -> {
+            booking.setStatus(Booking.BookingStatus.CANCELLED);
+        });
+    }
+
+    public List<Booking> findPaidBookingsWithEndDateBefore(LocalDateTime date) {
+        return bookings.stream()
+                .filter(booking -> booking.getStatus() == Booking.BookingStatus.PAID)
+                .filter(booking -> {
+                    LocalDateTime endLocalDateTime = booking.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                    return endLocalDateTime.isBefore(date);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Scheduled(cron = "0 * * * * *")
+    public void completePaidBookings() {
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        List<Booking> paidBookings = this.findPaidBookingsWithEndDateBefore(currentDateTime);
+        paidBookings.forEach(booking -> {
+            System.out.println("Completing booking with ID " + booking.getId());
+            booking.setStatus(Booking.BookingStatus.COMPLETED);
+        });
     }
 }
