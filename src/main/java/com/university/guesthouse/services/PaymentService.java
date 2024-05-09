@@ -22,7 +22,6 @@ public class PaymentService {
         if (booking == null) {
             throw new IllegalStateException("Booking with supplied ID not found");
         }
-        payment.setPaymentType(Payment.PaymentType.CARD);
         payment.setBooking(booking);
         booking.setStatus(Booking.BookingStatus.PAID);
         payment.setId(counter.incrementAndGet());

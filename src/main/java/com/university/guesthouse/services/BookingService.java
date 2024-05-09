@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,12 +38,12 @@ public class BookingService {
         if (!isRoomAvailable(room, booking.getStartDate(), booking.getEndDate())) {
             throw new IllegalArgumentException("Room is not available for the selected dates");
         }
-        booking.setPrice(100);
         booking.setGuest(guest);
         booking.setRoom(room);
         booking.setStatus(Booking.BookingStatus.CREATED);
         booking.setId(counter.incrementAndGet());
         booking.setCreationDate(new Date());
+        booking.setPrice(this.calculateRoomPrice(booking));
         bookings.add(booking);
     }
 
@@ -82,7 +83,7 @@ public class BookingService {
 
     @Scheduled(cron = "0 * * * * *")
     public void cancelUnpaidBookings() {
-        LocalDateTime threeDaysAgo = LocalDateTime.now().minusMinutes(1);
+        LocalDateTime threeDaysAgo = LocalDateTime.now().minusDays(3);
         List<Booking> unpaidBookings = this.findUnpaidBookingsCreatedBefore(threeDaysAgo);
         unpaidBookings.forEach(booking -> {
             booking.setStatus(Booking.BookingStatus.CANCELLED);
@@ -107,5 +108,20 @@ public class BookingService {
             System.out.println("Completing booking with ID " + booking.getId());
             booking.setStatus(Booking.BookingStatus.COMPLETED);
         });
+    }
+
+    private double calculateRoomPrice(Booking booking) {
+        long numberOfDays = ChronoUnit.DAYS.between(
+                booking.getStartDate().toInstant(),
+                booking.getEndDate().toInstant()
+        );
+
+        double basePrice = switch (booking.getRoom().getType()) {
+            case STANDARD -> 100;
+            case DELUXE -> 200;
+            case SUITE -> 400;
+            default -> 0;
+        };
+        return basePrice * numberOfDays;
     }
 }

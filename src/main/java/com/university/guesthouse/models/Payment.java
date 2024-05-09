@@ -9,8 +9,4 @@ import lombok.NoArgsConstructor;
 public class Payment {
     private Long id;
     private Booking booking;
-    private PaymentType paymentType;
-    public enum PaymentType {
-        CASH, CARD
-    }
 }
