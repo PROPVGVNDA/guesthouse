@@ -13,13 +13,13 @@ public class RoomService {
     private RoomRepository roomRepository;
     private Integer Number = 1;
 
-    public List<Room> listRooms() {
-        return roomRepository.findAll();
-    }
-
     public void addRoom(Room room) {
         room.setNumber(Number++);
         roomRepository.save(room);
+    }
+
+    public List<Room> listRooms() {
+        return roomRepository.findAll();
     }
 
     public void deleteRoom(Integer number) {

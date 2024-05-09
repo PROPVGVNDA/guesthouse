@@ -25,17 +25,17 @@ public class BookingController {
 
     @GetMapping("/bookings/create")
     public String showCreateBookingForm(Model model) {
-        List<Guest> guests = guestService.listGuests();  // Assuming a method that lists all guests
-        List<Room> rooms = roomService.listRooms();     // Assuming a method that lists all rooms
+        List<Guest> guests = guestService.listGuests();
+        List<Room> rooms = roomService.listRooms();
         model.addAttribute("guests", guests);
         model.addAttribute("rooms", rooms);
         model.addAttribute("booking", new Booking());
         return "create-booking";
     }
+
     @GetMapping("/bookings/{id}")
     public String bookingInfo(@PathVariable Long id, Model model) {
         Booking booking = bookingService.getBookingByID(id);
-        System.out.println(booking.toString());
         if (booking != null) {
             model.addAttribute("booking", booking);
             return "booking-info";

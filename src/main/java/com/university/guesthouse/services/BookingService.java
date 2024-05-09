@@ -6,13 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +22,7 @@ public class BookingService {
         this.roomService = roomService;
         this.guestService = guestService;
     }
+
     public void createBooking(Booking booking, String phoneNumber, Integer roomNumber) {
         Guest guest = guestService.findGuestByPhoneNumber(phoneNumber);
         Room room = roomService.getRoomByNumber(roomNumber);
@@ -100,7 +97,7 @@ public class BookingService {
         });
     }
 
-    private double calculateRoomPrice(Booking booking) {
+    public double calculateRoomPrice(Booking booking) {
         long numberOfDays = ChronoUnit.DAYS.between(
                 booking.getStartDate().toInstant(),
                 booking.getEndDate().toInstant()

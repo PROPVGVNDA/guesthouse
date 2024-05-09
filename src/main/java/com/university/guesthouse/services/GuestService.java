@@ -18,6 +18,7 @@ public class GuestService {
     public Guest findGuestByPhoneNumber(String phoneNumber) {
         return guestRepository.findByPhoneNumber(phoneNumber);
     }
+
     public void deleteGuest(String phoneNumber) {
         Guest guest = guestRepository.findByPhoneNumber(phoneNumber);
         if (guest != null) {
