@@ -1,33 +1,32 @@
 package com.university.guesthouse.services;
 
 import com.university.guesthouse.models.Guest;
+import com.university.guesthouse.repositories.GuestRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 @Service
 public class GuestService {
-
-    private final List<Guest> guests = new ArrayList<>();
+    @Autowired
+    private GuestRepository guestRepository;
 
     public void addGuest(Guest guest) {
-        guests.add(guest);
+        guestRepository.save(guest);
     }
 
     public Guest findGuestByPhoneNumber(String phoneNumber) {
-        for (Guest guest : guests) {
-            if (guest.getPhoneNumber().equals(phoneNumber)) {
-                return guest;
-            }
-        }
-        return null;
+        return guestRepository.findByPhoneNumber(phoneNumber);
     }
     public void deleteGuest(String phoneNumber) {
-        guests.removeIf(guest -> guest.getPhoneNumber().equals(phoneNumber));
+        Guest guest = guestRepository.findByPhoneNumber(phoneNumber);
+        if (guest != null) {
+            guestRepository.delete(guest);
+        }
     }
 
     public List<Guest> listGuests() {
-        return guests;
+        return guestRepository.findAll();
     }
 }
 

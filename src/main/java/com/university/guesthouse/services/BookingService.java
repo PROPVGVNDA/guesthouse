@@ -1,11 +1,11 @@
 package com.university.guesthouse.services;
 
 import com.university.guesthouse.models.*;
-import lombok.extern.flogger.Flogger;
+import com.university.guesthouse.repositories.BookingRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -17,8 +17,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class BookingService {
-    private final List<Booking> bookings = new ArrayList<>();
-    private final AtomicLong counter = new AtomicLong();
+    @Autowired
+    private BookingRepository bookingRepository;
     private final RoomService roomService;
     private final GuestService guestService;
 
@@ -41,38 +41,26 @@ public class BookingService {
         booking.setGuest(guest);
         booking.setRoom(room);
         booking.setStatus(Booking.BookingStatus.CREATED);
-        booking.setId(counter.incrementAndGet());
         booking.setCreationDate(new Date());
         booking.setPrice(this.calculateRoomPrice(booking));
-        bookings.add(booking);
+        bookingRepository.save(booking);
     }
 
     public boolean isRoomAvailable(Room room, Date start, Date end) {
-        for (Booking booking : bookings) {
-            if (booking.getRoom().equals(room)) {
-                // TODO: maybe make end date exclusive
-                boolean overlaps = !(booking.getEndDate().before(start) || booking.getStartDate().after(end));
-                if (overlaps && (booking.getStatus() == Booking.BookingStatus.CREATED || booking.getStatus() == Booking.BookingStatus.PAID)) {
-                    return false;
-                }
-            }
-        }
-        return true;
+        return bookingRepository.findByRoomAndStatusIn(room, List.of(Booking.BookingStatus.CREATED, Booking.BookingStatus.PAID)).stream()
+                .noneMatch(booking -> !(booking.getEndDate().before(start) || booking.getStartDate().after(end)));
     }
 
     public List<Booking> listBookings() {
-        return bookings;
+        return bookingRepository.findAll();
     }
 
     public Booking getBookingByID(Long id) {
-        for (Booking booking : bookings) {
-            if (booking.getId().equals(id)) return booking;
-        }
-        return null;
+        return bookingRepository.findById(id).orElse(null);
     }
 
     public List<Booking> findUnpaidBookingsCreatedBefore(LocalDateTime date) {
-        return bookings.stream()
+        return bookingRepository.findAll().stream()
                 .filter(booking -> booking.getStatus() == Booking.BookingStatus.CREATED)
                 .filter(booking -> {
                     LocalDateTime creationLocalDateTime = booking.getCreationDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -87,11 +75,12 @@ public class BookingService {
         List<Booking> unpaidBookings = this.findUnpaidBookingsCreatedBefore(threeDaysAgo);
         unpaidBookings.forEach(booking -> {
             booking.setStatus(Booking.BookingStatus.CANCELLED);
+            bookingRepository.save(booking);
         });
     }
 
     public List<Booking> findPaidBookingsWithEndDateBefore(LocalDateTime date) {
-        return bookings.stream()
+        return bookingRepository.findAll().stream()
                 .filter(booking -> booking.getStatus() == Booking.BookingStatus.PAID)
                 .filter(booking -> {
                     LocalDateTime endLocalDateTime = booking.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
@@ -107,6 +96,7 @@ public class BookingService {
         paidBookings.forEach(booking -> {
             System.out.println("Completing booking with ID " + booking.getId());
             booking.setStatus(Booking.BookingStatus.COMPLETED);
+            bookingRepository.save(booking);
         });
     }
 
@@ -123,5 +113,9 @@ public class BookingService {
             default -> 0;
         };
         return basePrice * numberOfDays;
+    }
+
+    public void saveBooking(Booking booking) {
+        bookingRepository.save(booking);
     }
 }

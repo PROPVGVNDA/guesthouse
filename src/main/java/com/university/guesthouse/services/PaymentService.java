@@ -1,16 +1,16 @@
 package com.university.guesthouse.services;
 
 import com.university.guesthouse.models.*;
+import com.university.guesthouse.repositories.PaymentRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 public class PaymentService {
-    private final List<Payment> payments = new ArrayList<>();
-    private final AtomicLong counter = new AtomicLong();
+    @Autowired
+    private PaymentRepository paymentRepository;
     private final BookingService bookingService;
 
     public PaymentService(BookingService bookingService) {
@@ -24,20 +24,15 @@ public class PaymentService {
         }
         payment.setBooking(booking);
         booking.setStatus(Booking.BookingStatus.PAID);
-        payment.setId(counter.incrementAndGet());
-        payments.add(payment);
+        bookingService.saveBooking(booking);
+        paymentRepository.save(payment);
     }
 
     public List<Payment> listPayments() {
-        return payments;
+        return paymentRepository.findAll();
     }
 
     public Payment getPaymentByID(Long id) {
-        for (Payment payment : payments) {
-            if (payment.getId().equals(id)) {
-                return payment;
-            }
-        }
-        return null;
+        return paymentRepository.findById(id).orElse(null);
     }
 }

@@ -1,33 +1,35 @@
 package com.university.guesthouse.services;
 
 import com.university.guesthouse.models.Room;
+import com.university.guesthouse.repositories.RoomRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class RoomService {
-    private final List<Room> rooms = new ArrayList<>();
+    @Autowired
+    private RoomRepository roomRepository;
     private Integer Number = 1;
 
     public List<Room> listRooms() {
-        return rooms;
+        return roomRepository.findAll();
     }
 
     public void addRoom(Room room) {
         room.setNumber(Number++);
-        rooms.add(room);
+        roomRepository.save(room);
     }
 
     public void deleteRoom(Integer number) {
-        rooms.removeIf(room -> room.getNumber().equals(number));
+        Room room = roomRepository.findByNumber(number);
+        if (room != null) {
+            roomRepository.delete(room);
+        }
     }
 
     public Room getRoomByNumber(Integer number) {
-        for (Room room : rooms) {
-            if (room.getNumber().equals(number)) return room;
-        }
-        return null;
+        return roomRepository.findByNumber(number);
     }
 }
